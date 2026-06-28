@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COMANDO — El juego del Arquitecto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#13294B;--navy2:#0E1F38;--blue:#2C6FB5;--gold:#C8A028;--goldb:#E2B73A;
+    --paper:#F4F1E9;--ink:#1c2330;--green:#2E8B57;--red:#C0392B;--amber:#E08A1E;--purple:#8E5BB5;--teal:#2BB3C0;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;color:var(--ink);font-family:'Nunito',sans-serif;
+    background:#071120;
+    background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+    background-size:30px 30px;}
+  .wrap{max-width:980px;margin:0 auto;padding:12px;}
+  h1,h2,h3{font-family:'Oswald',sans-serif;letter-spacing:1px;}
+
+  .mast{background:var(--navy);color:#fff;border:2px solid var(--gold);border-radius:12px;padding:12px 18px;position:relative;overflow:hidden;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:22px 22px;}
+  .mast h1{font-weight:700;font-size:26px;margin:0;letter-spacing:4px;}
+  .mast .tag{color:var(--goldb);font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+  .mast .ver{position:absolute;top:12px;right:54px;border:1px solid var(--goldb);color:var(--goldb);font-family:'Oswald',sans-serif;font-size:10px;padding:2px 8px;border-radius:4px;}
+  .snd{position:absolute;top:11px;right:14px;background:#0E1F38;border:1px solid var(--goldb);color:var(--goldb);border-radius:6px;width:30px;height:24px;cursor:pointer;font-size:13px;}
+
+  .race{display:flex;flex-direction:column;gap:6px;margin:10px 0;}
+  .lane{display:flex;align-items:center;gap:8px;}
+  .lane .who{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1px;width:120px;color:#fff;text-transform:uppercase;}
+  .bar{flex:1;height:18px;background:#0E1F38;border:2px solid #25406a;border-radius:10px;overflow:hidden;position:relative;}
+  .bar > i{display:block;height:100%;width:0%;border-radius:10px;transition:width .5s;}
+  .bar.you > i{background:linear-gradient(90deg,var(--blue),var(--green));}
+  .bar.riv > i{background:linear-gradient(90deg,#7a5a2a,var(--amber));}
+  .bar .goal{position:absolute;top:0;bottom:0;left:92%;width:2px;background:var(--goldb);}
+  .bar .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;text-shadow:0 1px 2px #000;}
+
+  .board{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,66px);gap:6px;background:var(--navy2);border:2px solid var(--gold);border-radius:14px;padding:8px;box-shadow:0 12px 40px rgba(0,0,0,.4);}
+  @media(max-width:620px){.board{grid-template-rows:repeat(5,54px);}}
+  .sq{border-radius:9px;background:#fff;border:2px solid #d8dee7;padding:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;transition:transform .12s;}
+  .sq .ic{font-size:18px;line-height:1;filter:drop-shadow(0 1px 1px #0002);}
+  .sq .lb{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;margin-top:2px;color:#566;line-height:1;}
+  .sq.salida{border-color:var(--gold);background:linear-gradient(160deg,#fdf6e2,#f7e9c2);}
+  .sq.opor{border-color:var(--green);background:linear-gradient(160deg,#eef8f1,#dff0e6);}
+  .sq.golpe{border-color:var(--red);background:linear-gradient(160deg,#fdeeec,#f9ddd9);}
+  .sq.caja{border-color:var(--blue);background:linear-gradient(160deg,#eaf2fb,#dbe9f9);}
+  .sq.juego{border-color:var(--amber);background:linear-gradient(160deg,#fff5e6,#ffe9cc);}
+  .sq.legado{border-color:var(--purple);background:linear-gradient(160deg,#f5edfa,#ebddf5);}
+  .sq.mercado{border-color:#5a6b7d;background:linear-gradient(160deg,#eef1f4,#e0e6ec);}
+  .sq.decision{border-color:#444;background:linear-gradient(160deg,#f0f0f2,#e2e2e6);}
+  .sq.vida{border-color:var(--teal);background:linear-gradient(160deg,#e6f7fa,#d3eff3);}
+  .sq.mentor{border-color:var(--gold);background:linear-gradient(160deg,#fbf4df,#f3e6c2);}
+  .sq.here{box-shadow:0 0 0 3px var(--goldb) inset;}
+  .tok{position:absolute;top:2px;right:3px;font-size:15px;filter:drop-shadow(0 1px 1px #0006);}
+  .sq.bounce{animation:bounce .4s ease;}
+  @keyframes bounce{0%{transform:translateY(0)}30%{transform:translateY(-7px)}60%{transform:translateY(0)}80%{transform:translateY(-3px)}100%{transform:translateY(0)}}
+
+  .center{grid-row:2/5;grid-column:2/5;background:var(--paper);border-radius:11px;padding:10px;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+  .compass{position:absolute;top:6px;right:8px;opacity:.10;}
+  .dash{display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:11px;position:relative;z-index:2;}
+  .stat{background:#fff;border-radius:7px;padding:5px 7px;border-left:5px solid #ccc;}
+  .stat .k{font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.5px;color:#788;text-transform:uppercase;}
+  .stat .v{font-weight:900;font-size:14px;}
+  .stat.efe{border-color:#445;} .stat.seg{border-color:var(--blue);} .stat.cf{border-color:var(--green);}
+  .stat.ani{border-color:var(--amber);} .stat.pro{border-color:var(--purple);} .stat.deu{border-color:var(--red);}
+  .rollz{margin-top:auto;display:flex;align-items:center;gap:10px;justify-content:center;padding-top:8px;position:relative;z-index:2;}
+  .die{width:48px;height:48px;border-radius:11px;background:var(--navy);color:var(--goldb);font-family:'Oswald',sans-serif;font-size:27px;display:flex;align-items:center;justify-content:center;border:2px solid var(--gold);}
+  .die.shake{animation:shake .5s ease;}
+  @keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-16deg) scale(1.08)}40%{transform:rotate(14deg)}60%{transform:rotate(-10deg)}80%{transform:rotate(8deg)}}
+  .roll{background:var(--gold);border:none;color:var(--navy);font-family:'Oswald',sans-serif;letter-spacing:1px;font-size:16px;font-weight:700;padding:11px 20px;border-radius:9px;cursor:pointer;box-shadow:0 3px 0 #9a7c1e;}
+  .roll:active{transform:translateY(2px);box-shadow:0 1px 0 #9a7c1e;}
+  .roll:disabled{background:#cbc3ac;color:#8a8470;cursor:not-allowed;box-shadow:none;}
+
+  .log{margin-top:12px;background:var(--paper);border:2px solid var(--navy);border-radius:12px;padding:10px 12px;}
+  .log h3{margin:0 0 8px;font-size:13px;color:var(--navy);border-bottom:2px solid var(--navy);padding-bottom:4px;text-transform:uppercase;}
+  .logbox{height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+  .msg{background:#fff;border-radius:7px;padding:6px 9px;font-size:12px;border-left:4px solid var(--blue);line-height:1.35;}
+  .msg.good{border-color:var(--green);} .msg.bad{border-color:var(--red);} .msg.tesis{border-color:var(--gold);background:#fbf6e7;font-style:italic;}
+  .msg .h{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1px;color:var(--blue);text-transform:uppercase;}
+  .foot{color:#7c8aa0;font-size:11px;margin:10px 0;text-align:center;}
+
+  .ov{position:fixed;inset:0;background:rgba(7,15,28,.9);display:none;align-items:center;justify-content:center;padding:16px;z-index:60;}
+  .ov.on{display:flex;}
+  .card{background:var(--paper);border:3px solid var(--gold);border-radius:16px;max-width:470px;width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pop .25s ease;}
+  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .banner{padding:18px 22px 16px;color:#fff;position:relative;overflow:hidden;
+    background-image:linear-gradient(rgba(255,255,255,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.10) 1px,transparent 1px);background-size:18px 18px;}
+  .banner .big{font-size:42px;line-height:1;filter:drop-shadow(0 2px 3px #0004);}
+  .banner .kick{font-family:'Oswald',sans-serif;letter-spacing:3px;font-size:12px;text-transform:uppercase;opacity:.95;margin-top:6px;}
+  .cbody{padding:18px 22px 20px;}
+  .cbody h3{font-size:22px;margin:0 0 8px;color:var(--navy);}
+  .cbody p{font-size:14px;line-height:1.5;margin:0 0 10px;}
+  .princ{background:#fbf6e7;border-left:4px solid var(--gold);border-radius:8px;padding:10px 13px;font-style:italic;font-size:13.5px;color:#5a4a20;margin:10px 0;}
+  .btns{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+  .btns button{border:none;border-radius:9px;padding:12px;font-family:'Oswald',sans-serif;letter-spacing:1px;font-size:14px;font-weight:600;cursor:pointer;}
+  .b-go{background:var(--gold);color:var(--navy);box-shadow:0 3px 0 #9a7c1e;}
+  .b-go:active{transform:translateY(2px);box-shadow:0 1px 0 #9a7c1e;}
+  .b-alt{background:#fff;color:var(--navy);border:2px solid var(--navy)!important;}
+  .b-go:disabled{background:#cbc3ac;color:#8a8470;cursor:not-allowed;box-shadow:none;}
+  .endbig{font-size:30px;letter-spacing:2px;text-align:center;margin:0;}
+  .conf{position:fixed;top:-14px;width:9px;height:15px;z-index:80;border-radius:2px;animation:fall linear forwards;}
+  @keyframes fall{to{top:106%;transform:rotate(540deg);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="mast">
+    <span class="ver">v0.4 · PROTOTIPO</span>
+    <button class="snd" id="snd" title="Sonido">🔊</button>
+    <h1>COMANDO</h1>
+    <div class="tag">El juego del Arquitecto · Del caos al comando</div>
+  </div>
+
+  <div class="race">
+    <div class="lane"><span class="who">🛠 Tú · Arquitecto</span><div class="bar you"><i id="you-i"></i><div class="goal"></div><div class="pct" id="you-p">0</div></div></div>
+    <div class="lane"><span class="who">😤 El Disciplinado</span><div class="bar riv"><i id="riv-i"></i><div class="goal"></div><div class="pct" id="riv-p">0</div></div></div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="log">
+    <h3>Parte de Comando · Año <span id="year">1</span> · Turno <span id="turn">0</span></h3>
+    <div class="logbox" id="log"></div>
+  </div>
+
+  <div class="foot">COMANDO v0.4 — motor + tablero + arte (versión José/adultos). La reskin Pequeño Arquitecto corre sobre este mismo motor.</div>
+</div>
+
+<div class="ov" id="ov"><div class="card" id="card"></div></div>
+
+<script>
+// ---------- DATA ----------
+const COORD=[[1,1],[1,2],[1,3],[1,4],[1,5],[2,5],[3,5],[4,5],[5,5],[5,4],[5,3],[5,2],[5,1],[4,1],[3,1],[2,1]];
+const SQ=[
+ {t:'salida',ic:'🏁',lb:'Día de Pago'},
+ {t:'opor',ic:'💡',lb:'Oportunidad'},
+ {t:'golpe',ic:'⚡',lb:'Golpe'},
+ {t:'juego',ic:'🎮',lb:'Juego'},
+ {t:'opor',ic:'💡',lb:'Oportunidad'},
+ {t:'caja',ic:'🔒',lb:'Seguridad'},
+ {t:'decision',ic:'⚖️',lb:'Decisión'},
+ {t:'vida',ic:'🎲',lb:'Vida'},
+ {t:'opor',ic:'💡',lb:'Oportunidad'},
+ {t:'legado',ic:'❤️',lb:'Legado'},
+ {t:'mercado',ic:'📈',lb:'Mercado'},
+ {t:'opor',ic:'💡',lb:'Oportunidad'},
+ {t:'golpe',ic:'⚡',lb:'Golpe'},
+ {t:'mentor',ic:'🧭',lb:'Mentor'},
+ {t:'opor',ic:'💡',lb:'Oportunidad'},
+ {t:'caja',ic:'🔒',lb:'Seguridad'}
+];
+const ART={
+ opor:{c1:'#1f7a4d',c2:'#2E8B57',ic:'💡',k:'Oportunidad'},
+ trap:{c1:'#b5421f',c2:'#E08A1E',ic:'🚗',k:'¿Oportunidad?'},
+ golpe:{c1:'#8e1f17',c2:'#C0392B',ic:'⚡',k:'Golpe de la vida'},
+ caja:{c1:'#1c4f86',c2:'#2C6FB5',ic:'🔒',k:'Caja Fuerte'},
+ juego:{c1:'#b5651f',c2:'#E08A1E',ic:'🎮',k:'Juego'},
+ legado:{c1:'#5e2f86',c2:'#8E5BB5',ic:'❤️',k:'Legado'},
+ mercado:{c1:'#3a4a5c',c2:'#5a6b7d',ic:'📈',k:'Mercado'},
+ decision:{c1:'#2a2a2a',c2:'#555555',ic:'⚖️',k:'Decisión'},
+ vida:{c1:'#1c6f86',c2:'#2BB3C0',ic:'🎲',k:'La Vida'},
+ mentor:{c1:'#1c3a6e',c2:'#C8A028',ic:'🧭',k:'Mentor'},
+ princ:{c1:'#8a6a14',c2:'#C8A028',ic:'💬',k:'Principio'},
+ win:{c1:'#1f7a4d',c2:'#C8A028',ic:'🏆',k:'Lo lograste'},
+ lose:{c1:'#8e1f17',c2:'#C0392B',ic:'🧭',k:'Recalcula la ruta'},
+ intro:{c1:'#13294B',c2:'#2C6FB5',ic:'🛠',k:'El juego del Arquitecto'}
+};
+const ASSETS=[
+ {n:'Side hustle de fin de semana',c:3000,cf:1800,p:'Un activo te paga mientras duermes. Un pasivo te cobra.'},
+ {n:'Fondo índice (dividendos)',c:5000,cf:2200,p:'Lo que no tocas, crece. Soberanía en cámara lenta.'},
+ {n:'Cuarto alquilado (house hack)',c:6000,cf:3400,p:'La casa que ya tienes puede trabajar para ti.'},
+ {n:'Equipo que rentas',c:2500,cf:1500,p:'No vendes tu tiempo. Vendes el uso de algo que compraste una vez.'},
+ {n:'Posición en bienes raíces (REIT)',c:4000,cf:2000,p:'Dueño de un pedacito, sin arreglar inodoros.'},
+ {n:'Curso que te sube el ingreso',c:3000,cf:2400,p:'La destreza es un activo. Te paga el resto de tu vida.'},
+ {n:'Negocio en automático',c:7000,cf:3600,p:'Construye una vez, cobra muchas veces.'},
+ {n:'Máquinas vending',c:4500,cf:2300,p:'Trabajan 24/7. No piden vacaciones ni aumento.'},
+ {n:'Regalías de un libro',c:2000,cf:1300,p:'Escribes una vez, cobras para siempre. Pregúntale a tus libros.'},
+ {n:'Segunda propiedad de alquiler',c:9000,cf:4800,p:'Otro inquilino pagando tu libertad.'},
+ {n:'Food truck con socio',c:6500,cf:3200,p:'El socio correcto multiplica; el incorrecto divide.'},
+ {n:'Cartera de dividendos crecientes',c:5500,cf:2600,p:'No persigas el pago de hoy. Siembra el de mañana.'}
+];
+const TRAPS=[
+ {n:'Carro nuevo del año (estatus)',c:8000,cf:-1400,p:'Un carro que se devalúa no es un activo. Es un pasivo con asiento de cuero.',trap:true},
+ {n:'Reloj de lujo a crédito',c:4000,cf:-700,p:'El lujo a crédito no es un activo. Es una factura con brillo.',trap:true},
+ {n:'Bote para los fines de semana',c:9000,cf:-1600,p:'Un bote es un hueco en el agua donde echas dinero.',trap:true}
+];
+const GOLPES=[
+ {n:'Se dañó el carro',c:4000},{n:'Emergencia médica',c:5000},{n:'Se rompió el techo',c:3000},
+ {n:'La familia necesitó ayuda',c:2500},{n:'Pérdida temporal de ingreso',c:6000},{n:'Reparaciones del hogar',c:1500},
+ {n:'Multa y gastos legales',c:2000},{n:'Se dañaron el celular y la laptop',c:1800},
+ {n:'Subió el seguro y la luz',c:1300},{n:'Viaje de emergencia familiar',c:2800}
+];
+const ANTI='No fue falta de disciplina ni de ingreso. Fue un hueco en el diseño. El departamento dormido despertó.';
+const DILEMMAS=[
+ {q:'Te llega un bono de $6,000.',a:{l:'Comprar un activo (cashflow +$2,800/año)',fn:()=>{S.cf+=2800;}},b:{l:'Disfrutarlo completo (Ánimo +20)',fn:()=>{S.ani=Math.min(100,S.ani+20);}},p:'Págate a ti primero. Disfrutar está bien, pero el orden cambia tu vida.'},
+ {q:'Tu DTI aprieta. Consolidar o atacar el sistema.',a:{l:'Mandar $4,000 a tu colchón',fn:()=>{S.seg+=4000;S.efe-=4000;}},b:{l:'Subir tu estilo de vida (Ánimo +15)',fn:()=>{S.ani=Math.min(100,S.ani+15);}},p:'Seguridad antes que libertad. El colchón compra calma.'},
+ {q:'Un conocido te ofrece una "inversión segura" que no entiendes.',a:{l:'Pasar. No invierto en lo que no entiendo',fn:()=>{S.pro=Math.min(100,S.pro+5);}},b:{l:'Entrar por FOMO (−$3,000)',fn:()=>{S.efe-=3000;S.ani-=5;}},p:'Si no lo entiendes, no es inversión. Es apuesta.'},
+ {q:'Tu ingreso subió este año.',a:{l:'Mando el aumento a activos (cashflow +$2,000)',fn:()=>{S.cf+=2000;}},b:{l:'Estreno estilo de vida (Ánimo +15)',fn:()=>{S.ani=Math.min(100,S.ani+15);}},p:'La inflación de estilo de vida se come los aumentos. Diséñala.'},
+ {q:'Te ofrecen una tarjeta nueva con "puntos".',a:{l:'Pasar y pagar lo que ya tengo',fn:()=>{S.pro=Math.min(100,S.pro+5);}},b:{l:'Financiar un gusto (+$2,500 de deuda)',fn:()=>{S.deu+=2500;}},p:'El crédito fácil es caro disfrazado de conveniente.'},
+ {q:'Un familiar te pide prestado (familismo).',a:{l:'Ayudar con límite, desde el colchón',fn:()=>{if(S.seg>=1500){S.seg-=1500;}S.pro=Math.min(100,S.pro+10);}},b:{l:'Prestar de más (−$3,000, Ánimo +10)',fn:()=>{S.efe-=3000;S.ani=Math.min(100,S.ani+10);}},p:'Dar con sabiduría pesa más que dar por impulso.'}
+];
+const VIDA=[
+ {n:'Te llegó una herencia pequeña',d:'+$3,000 de efectivo',fn:()=>{S.efe+=3000;},p:'El dinero inesperado revela tu diseño: ¿lo inviertes o se esfuma?'},
+ {n:'Bono sorpresa en el trabajo',d:'+$2,000 de efectivo',fn:()=>{S.efe+=2000;}},
+ {n:'Te recomendaron y conseguiste un cliente',d:'cashflow +$1,000/año',fn:()=>{S.cf+=1000;},p:'Tu reputación es un activo que no aparece en el banco.'},
+ {n:'Vendiste algo que no usabas',d:'+$800 de efectivo',fn:()=>{S.efe+=800;}},
+ {n:'Te enfermaste un fin de semana',d:'Ánimo −8',fn:()=>{S.ani=Math.max(0,S.ani-8);}},
+ {n:'Gasto chico inesperado',d:'−$1,000 de efectivo',fn:()=>{S.efe-=1000;}}
+];
+const MENTOR=[
+ {n:'Un mentor te enseñó a negociar tu sueldo',d:'+$1,500 de efectivo',fn:()=>{S.efe+=1500;},p:'Un mentor te ahorra años de tropiezos.'},
+ {n:'Te conectó con tu primer activo',d:'cashflow +$900/año',fn:()=>{S.cf+=900;},p:'Rodéate de quien ya llegó a donde tú vas.'},
+ {n:'Te corrigió a tiempo',d:'Propósito +8',fn:()=>{S.pro=Math.min(100,S.pro+8);},p:'La crítica del que te ama es un regalo caro.'}
+];
+
+// ---------- SOUND ----------
+let sndOn=true, AC=null;
+function beep(f,d,type='sine',v=0.05){ if(!sndOn)return; try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+d);o.stop(AC.currentTime+d);}catch(e){} }
+function sBuy(){beep(620,.12);setTimeout(()=>beep(820,.16),90);}
+function sHit(){beep(150,.25,'sawtooth',.06);}
+function sGood(){beep(520,.1);setTimeout(()=>beep(700,.12),80);}
+function sRoll(){beep(380,.06,'square',.03);}
+function sWin(){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.2,'triangle',.06),i*130));}
+function sLose(){beep(300,.2,'sawtooth',.05);setTimeout(()=>beep(180,.35,'sawtooth',.05),160);}
+
+// ---------- STATE ----------
+let S, R, busy=false;
+function newGame(){
+  S={pos:0,year:1,turns:0,efe:6000,seg:0,cf:0,ani:70,pro:0,deu:0};
+  R={efe:6000,seg:0,cf:0,ani:70,pro:0,deu:0};
+  document.getElementById('log').innerHTML='';
+  intro();
+}
+const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function idx(o){
+  let cf=Math.min(40,o.cf/18000*40),sg=Math.min(25,o.seg/9000*25);
+  let an=Math.min(15,o.ani/100*15),pr=Math.min(10,o.pro/100*10);
+  let db=o.deu<1?10:Math.max(0,10-o.deu/1500);
+  return Math.round(cf+sg+an+pr+db);
+}
+const isComando=o=>o.cf>=18000&&o.seg>=9000&&o.deu<1;
+
+// ---------- RENDER ----------
+function render(){
+  const b=document.getElementById('board'); b.innerHTML='';
+  SQ.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='sq '+s.t+(i===S.pos?' here':'');
+    d.style.gridRow=COORD[i][0]; d.style.gridColumn=COORD[i][1];
+    d.innerHTML=`<div class="ic">${s.ic}</div><div class="lb">${s.lb}</div>${i===S.pos?'<div class="tok">🛠</div>':''}`;
+    b.appendChild(d);
+  });
+  const c=document.createElement('div'); c.className='center';
+  c.innerHTML=`
+    <svg class="compass" width="60" height="60" viewBox="0 0 100 100" fill="none" stroke="#13294B" stroke-width="3">
+      <circle cx="50" cy="50" r="44"/><polygon points="50,10 58,50 50,46 42,50" fill="#C8A028" stroke="none"/>
+      <polygon points="50,90 42,50 50,54 58,50" fill="#13294B" stroke="none"/></svg>
+    <div class="dash">
+      <div class="stat efe"><div class="k">Efectivo</div><div class="v">${fmt(S.efe)}</div></div>
+      <div class="stat seg"><div class="k">Seguridad</div><div class="v">${fmt(S.seg)}</div></div>
+      <div class="stat cf"><div class="k">Cashflow/año</div><div class="v">${fmt(S.cf)}</div></div>
+      <div class="stat ani"><div class="k">Ánimo</div><div class="v">${Math.round(S.ani)}</div></div>
+      <div class="stat pro"><div class="k">Propósito</div><div class="v">${Math.round(S.pro)}</div></div>
+      <div class="stat deu"><div class="k">Deuda</div><div class="v">${fmt(S.deu)}</div></div>
+    </div>
+    <div class="rollz"><div class="die" id="die">–</div><button class="roll" id="roll">Tirar 🎲</button></div>`;
+  b.appendChild(c);
+  document.getElementById('roll').onclick=roll;
+  document.getElementById('roll').disabled=busy;
+  document.getElementById('year').textContent=S.year;
+  document.getElementById('turn').textContent=S.turns;
+  const yi=idx(S),ri=idx(R);
+  document.getElementById('you-i').style.width=yi+'%'; document.getElementById('you-p').textContent=yi;
+  document.getElementById('riv-i').style.width=ri+'%'; document.getElementById('riv-p').textContent=ri;
+}
+function log(h,body,cls){
+  const e=document.createElement('div'); e.className='msg '+(cls||'');
+  e.innerHTML=`<span class="h">${h}</span><br>${body}`;
+  document.getElementById('log').prepend(e);
+}
+
+// ---------- MODAL ----------
+function openCard(type,title,bodyHtml,actions){
+  const a=ART[type]||ART.opor;
+  document.getElementById('card').innerHTML=
+    `<div class="banner" style="background:linear-gradient(135deg,${a.c1},${a.c2})">
+       <div class="big">${a.ic}</div><div class="kick">${a.k}</div></div>
+     <div class="cbody">${title?`<h3>${title}</h3>`:''}${bodyHtml}<div class="btns" id="cbtns"></div></div>`;
+  const box=document.getElementById('cbtns');
+  actions.forEach(ac=>{
+    const btn=document.createElement('button');
+    btn.className=ac.alt?'b-alt':'b-go'; btn.textContent=ac.l; btn.disabled=!!ac.dis;
+    btn.onclick=()=>{ closeCard(); if(ac.fn)ac.fn(); };
+    box.appendChild(btn);
+  });
+  document.getElementById('ov').classList.add('on');
+}
+function closeCard(){ document.getElementById('ov').classList.remove('on'); }
+function reveal(p){ beep(700,.12,'triangle',.04); openCard('princ','',`<div class="princ">“${p}”</div>`,[{l:'Entendido',fn:finishTurn}]); }
+
+// ---------- TURN ----------
+function roll(){
+  if(busy) return; busy=true; S.turns++; render();
+  const die=document.getElementById('die'); die.classList.add('shake'); sRoll();
+  const n=1+Math.floor(Math.random()*6);
+  let steps=n;
+  setTimeout(()=>{ die.classList.remove('shake'); die.textContent=n;
+    const iv=setInterval(()=>{
+      S.pos=(S.pos+1)%16;
+      if(S.pos===0) newYear();
+      render(); document.getElementById('die').textContent=n; sRoll();
+      steps--;
+      if(steps<=0){ clearInterval(iv); bounceHere(); setTimeout(()=>resolve(S.pos),260); }
+    },150);
+  },400);
+}
+function bounceHere(){ const h=document.querySelector('.sq.here'); if(h){h.classList.add('bounce'); setTimeout(()=>h.classList.remove('bounce'),420);} }
+function finishTurn(){ busy=false; render(); checkComando(); }
+
+function resolve(i){
+  const t=SQ[i].t;
+  if(t==='salida'){ finishTurn(); return; }
+  if(t==='opor') return oporCard();
+  if(t==='golpe') return golpeCard();
+  if(t==='caja') return cajaCard();
+  if(t==='juego') return juegoCard();
+  if(t==='legado') return legadoCard();
+  if(t==='mercado') return mercadoCard();
+  if(t==='decision') return decisionCard();
+  if(t==='vida') return vidaCard();
+  if(t==='mentor') return mentorCard();
+  finishTurn();
+}
+
+function oporCard(){
+  const trap = Math.random()<0.24;
+  const a = trap ? pick(TRAPS) : pick(ASSETS);
+  const afford=S.efe>=a.c;
+  const cfTxt = a.cf>=0 ? `+${fmt(a.cf)}/año` : `${fmt(a.cf)}/año (te resta)`;
+  openCard(trap?'trap':'opor', a.n,
+    `<p>Costo: <b>${fmt(a.c)}</b> · Cashflow: <b>${cfTxt}</b></p>
+     <p style="font-size:12.5px;color:#667">${trap?'Se ve bien. Brilla. Da estatus.':'Pon tu dinero a trabajar para ti.'}</p>`,
+    [
+     {l: afford?`Comprar (${fmt(a.c)})`:'No te alcanza el efectivo', dis:!afford, fn:()=>{
+        S.efe-=a.c; S.cf+=a.cf;
+        if(trap){ sHit(); log('Compra',`Compraste: ${a.n}. Tu cashflow bajó.`,'bad'); }
+        else { sBuy(); log('Activo adquirido',`${a.n}. Cashflow ${fmt(a.cf)}/año.`,'good'); }
+        reveal(a.p);
+     }},
+     {l:'Pasar', alt:true, fn:()=>{ log('Pasaste','Dejaste pasar la oportunidad.',''); finishTurn(); }}
+    ]
+  );
+}
+function golpeCard(){
+  const g=pick(GOLPES);
+  openCard('golpe', g.n, `<p>Costo inesperado: <b>${fmt(g.c)}</b></p>`,
+    [{l:'Enfrentarlo', fn:()=>{
+       if(S.seg>=g.c){ S.seg-=g.c; sGood(); log('Golpe absorbido',`${g.n}. Tu colchón lo cubrió sin despeinarte.`,'good'); finishTurn(); }
+       else { const sh=g.c-S.seg; S.seg=0; S.deu+=sh; S.ani-=15; sHit();
+         log('Departamento dormido',`${g.n}. No alcanzó el colchón. Caíste ${fmt(sh)} en deuda.`,'tesis'); reveal(ANTI); }
+    }}]
+  );
+}
+function cajaCard(){
+  openCard('caja','Construye tu colchón',
+    `<p>Mueve efectivo a Seguridad. Es lo que absorbe los golpes antes de que se vuelvan deuda.</p>`,
+    [
+     {l:'Fondear $6,000', dis:S.efe<6000, fn:()=>{S.efe-=6000;S.seg+=6000;sGood();log('Seguridad',`Fondeaste ${fmt(6000)}.`,'good');reveal('Seguridad antes que libertad. El colchón compra calma.');}},
+     {l:'Fondear $3,000', dis:S.efe<3000, fn:()=>{S.efe-=3000;S.seg+=3000;sGood();log('Seguridad',`Fondeaste ${fmt(3000)}.`,'good');finishTurn();}},
+     {l:'Ahora no', alt:true, fn:finishTurn}
+    ]
+  );
+}
+function juegoCard(){
+  openCard('juego','Disfruta la vida',
+    `<p>El Juego no es pecado: es parte del sistema. Si lo matas, llega el burnout. Paga $1,000 y recarga Ánimo.</p>`,
+    [
+     {l:'Disfrutar ($1,000 → Ánimo +20)', dis:S.efe<1000, fn:()=>{S.efe-=1000;S.ani=Math.min(100,S.ani+20);sGood();log('Juego','Recargaste energía. Sostenible vence a perfecto.','good');reveal('El Juego no es pecado. Matarlo trae burnout.');}},
+     {l:'Saltar', alt:true, fn:()=>{S.ani-=4;finishTurn();}}
+    ]
+  );
+}
+function legadoCard(){
+  openCard('legado','Da y construye herencia',
+    `<p>Dar no te resta: te ancla. Mayordomía, no migaja (Mateo 25). Da $1,000 y sube Propósito.</p>`,
+    [
+     {l:'Dar ($1,000 → Propósito +15)', dis:S.efe<1000, fn:()=>{S.efe-=1000;S.pro=Math.min(100,S.pro+15);sGood();log('Legado','Diste. El propósito te hace resiliente.','good');reveal('Dar no te resta. Te ancla.');}},
+     {l:'Saltar', alt:true, fn:finishTurn}
+    ]
+  );
+}
+function mercadoCard(){
+  const up=Math.random()<0.6;
+  if(up){ const g=Math.round(S.cf*0.15); S.cf+=g; sGood();
+    openCard('mercado','El mercado subió',`<p>Tus activos rinden más. Cashflow +${fmt(g)}/año.</p>`,[{l:'Seguir',fn:finishTurn}]);
+  } else { const lo=Math.round(S.cf*0.10); S.cf=Math.max(0,S.cf-lo);
+    openCard('mercado','El mercado bajó',`<p>Tus activos rinden menos este año (−${fmt(lo)}). Pero no vendiste. Quien aguanta, gana.</p>`,[{l:'Seguir',fn:()=>reveal('El que no se asusta en la baja, cosecha en la subida.')}]);
+  }
+}
+function decisionCard(){
+  const d=pick(DILEMMAS);
+  openCard('decision', d.q, ``,
+    [
+     {l:d.a.l, fn:()=>{d.a.fn();sGood();log('Decisión',d.a.l,'good');reveal(d.p);}},
+     {l:d.b.l, alt:true, fn:()=>{d.b.fn();log('Decisión',d.b.l,'');reveal(d.p);}}
+    ]
+  );
+}
+function vidaCard(){
+  const v=pick(VIDA);
+  openCard('vida', v.n, `<p>${v.d}.</p>`,
+    [{l:'Seguir', fn:()=>{ v.fn(); sGood(); log('La vida',`${v.n} — ${v.d}.`,''); if(v.p)reveal(v.p); else finishTurn(); }}]
+  );
+}
+function mentorCard(){
+  const m=pick(MENTOR);
+  openCard('mentor', m.n, `<p>${m.d}.</p>`,
+    [{l:'Recibir el consejo', fn:()=>{ m.fn(); sGood(); log('Mentor',`${m.n} — ${m.d}.`,'good'); reveal(m.p); }}]
+  );
+}
+
+// ---------- YEAR / RIVAL ----------
+function newYear(){
+  S.year++;
+  S.efe += 12000 + S.cf;
+  S.ani = Math.max(0,S.ani-8);
+  if(S.deu>0) S.deu*=1.12;
+  log('Día de Pago',`Año ${S.year}. Entró tu margen + ${fmt(S.cf)} de cashflow pasivo.`,'');
+  rivalYear();
+  if(S.year>7){ endByIndex(); }
+}
+function rivalYear(){
+  let acts=[];
+  R.efe += 12000 + R.cf;
+  const need=Math.max(0,6000-R.seg); const fund=Math.min(need,3000); R.seg+=fund; R.efe-=fund;
+  acts.push(fund>0?('fondeó '+fmt(fund)+' al colchón'):'no tocó el colchón');
+  R.efe-=4000; R.ani=Math.min(100,R.ani-8+15);
+  acts.push('gastó '+fmt(4000)+' en estilo de vida');
+  if(Math.random()<0.32 && R.efe>=4000){ R.efe-=4000; R.cf+=2200; acts.push('compró 1 activo (+'+fmt(2200)+'/año)'); }
+  else acts.push('no compró activos');
+  let golpe='';
+  if(Math.random()<0.45){ const g=pick(GOLPES);
+    if(R.seg>=g.c){R.seg-=g.c; golpe=g.n+', lo cubrió el colchón';}
+    else {const sh=g.c-R.seg;R.seg=0;R.deu+=sh;R.ani-=15; golpe=g.n+', cayó '+fmt(sh)+' en deuda';}
+  }
+  if(R.deu>0) R.deu*=1.12; R.ani=Math.max(0,R.ani);
+  let body='Hizo: '+acts.join(', ')+'.'+(golpe?' Golpe — '+golpe+'.':'');
+  body+='<br>Él → cashflow <b>'+fmt(R.cf)+'</b> · colchón <b>'+fmt(R.seg)+'</b> · deuda <b>'+fmt(R.deu)+'</b>';
+  body+='<br>Tú → cashflow <b>'+fmt(S.cf)+'</b> · colchón <b>'+fmt(S.seg)+'</b> · deuda <b>'+fmt(S.deu)+'</b>';
+  log('El Disciplinado · Año '+S.year, body, isComando(R)?'bad':'');
+  if(isComando(R)){ endGame(false,'El Disciplinado llegó primero','Tuvo suerte y aguantó. Pero la mayoría de las veces, la fuerza de voluntad sola no llega. El diseño sí, siempre.'); }
+}
+
+// ---------- END ----------
+function checkComando(){ if(isComando(S)) endGame(true); }
+function endByIndex(){
+  const y=idx(S),r=idx(R);
+  if(y>=r) endGame(true,'Ganaste por diseño',`Cerraste con Índice ${y} contra ${r}. Construiste más sistema que el que solo se esforzó.`);
+  else endGame(false,'Se acabó el tiempo',`El Disciplinado cerró con ${r} contra tu ${y}. La buena noticia: ahora sabes que el juego se gana diseñando, no apretando.`);
+}
+function confetti(){ const cs=['#C8A028','#2C6FB5','#2E8B57','#E08A1E','#E2B73A']; for(let i=0;i<50;i++){const d=document.createElement('div');d.className='conf';d.style.left=Math.random()*100+'%';d.style.background=cs[i%5];d.style.animationDuration=(2.2+Math.random()*1.6)+'s';d.style.animationDelay=(Math.random()*0.5)+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),4200);} }
+function endGame(win,title,sub){
+  busy=true;
+  if(win){ sWin(); confetti(); } else sLose();
+  const t=title||(win?'COMANDO':'Se acabó');
+  const p=sub||(win?'Tu cashflow pasivo cubre tu vida, con colchón y sin deuda. Eso no es relief ni permiso. Es soberanía. Pasaste del caos al comando.':'Caíste, pero escucha: no te falló la disciplina. Te faltó el diseño. Y el diseño se aprende.');
+  openCard(win?'win':'lose','',
+    `<div class="endbig" style="color:${win?'var(--green)':'var(--red)'}">${t}</div>
+     <p style="text-align:center;margin-top:10px">${p}</p>
+     <div class="princ" style="text-align:center">“Tu problema no es de disciplina, ingreso ni conocimiento. Es un error de diseño.”</div>
+     <p style="text-align:center;font-size:13px">En la vida real, ese diseño es el <b>Desafío del Arquitecto</b>. Cinco días, gratis.</p>`,
+    [{l:'Jugar otra vez',fn:newGame}]
+  );
+}
+
+// ---------- INTRO ----------
+function intro(){
+  S.pos=0; render();
+  openCard('intro','Del caos al comando',
+    `<p>Ganas bien, pero todo se filtra. Tu misión: que tu <b>cashflow pasivo</b> cubra tu vida, con colchón y sin deuda. Eso es <b>COMANDO</b>: soberanía.</p>
+     <p>Compites contra <b>El Disciplinado</b> — la versión de ti que vive de fuerza de voluntad en vez de diseño. Tira el dado, cae en las casillas, toma una decisión por turno. La app hace los números.</p>
+     <div class="princ">El que diseña, llega. El que solo se esfuerza, se cansa.</div>`,
+    [{l:'Empezar 🎲',fn:()=>{busy=false;render();}}]
+  );
+}
+document.getElementById('snd').onclick=function(){ sndOn=!sndOn; this.textContent=sndOn?'🔊':'🔇'; if(sndOn)beep(660,.1); };
+newGame();
+</script>
+</body>
+</html>
