@@ -60,7 +60,14 @@
   .msg.near{border-color:var(--amber);background:#fff6e9;}
 
   .board{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,66px);gap:6px;background:var(--navy2);border:2px solid var(--gold);border-radius:14px;padding:8px;box-shadow:0 12px 40px rgba(0,0,0,.4);}
-  @media(max-width:620px){.board{grid-template-rows:repeat(5,54px);}}
+  @media(max-width:620px){
+    .board{grid-template-rows:repeat(5,56px);}
+    .sq .ic{font-size:20px;}
+    .sq .lb{font-size:8.5px;}
+    .center{padding:7px;}
+    .center .rollz{display:none;}     /* el control de tirar se mueve abajo en móvil */
+    .dash{font-size:11px;gap:6px;}
+  }
   .sq{border-radius:9px;background:#fff;border:2px solid #d8dee7;padding:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;transition:transform .12s;}
   .sq .ic{font-size:18px;line-height:1;filter:drop-shadow(0 1px 1px #0002);}
   .sq .lb{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;margin-top:2px;color:#566;line-height:1;}
@@ -94,6 +101,13 @@
   .roll{background:var(--gold);border:none;color:var(--navy);font-family:'Oswald',sans-serif;letter-spacing:1px;font-size:16px;font-weight:700;padding:11px 20px;border-radius:9px;cursor:pointer;box-shadow:0 3px 0 #9a7c1e;}
   .roll:active{transform:translateY(2px);box-shadow:0 1px 0 #9a7c1e;}
   .roll:disabled{background:#cbc3ac;color:#8a8470;cursor:not-allowed;box-shadow:none;}
+  .mroll{display:none;}
+  @media(max-width:620px){
+    .mroll{display:flex;align-items:center;gap:12px;justify-content:center;margin:12px 0 4px;}
+    .mroll .die{width:54px;height:54px;font-size:30px;}
+    .mroll .roll{flex:1;max-width:280px;padding:17px 18px;font-size:20px;box-shadow:0 4px 0 #9a7c1e;}
+    .mroll .roll:active{box-shadow:0 1px 0 #9a7c1e;}
+  }
 
   .log{margin-top:12px;background:var(--paper);border:2px solid var(--navy);border-radius:12px;padding:10px 12px;}
   .log h3{margin:0 0 8px;font-size:13px;color:var(--navy);border-bottom:2px solid var(--navy);padding-bottom:4px;text-transform:uppercase;}
@@ -146,6 +160,11 @@
   </div>
 
   <div class="board" id="board"></div>
+
+  <div class="mroll" id="mroll">
+    <div class="die" id="die-m">–</div>
+    <button class="roll" id="roll-m">Tirar 🎲</button>
+  </div>
 
   <div class="imperio" id="imperio"></div>
 
@@ -300,6 +319,7 @@ function render(){
   b.appendChild(c);
   document.getElementById('roll').onclick=roll;
   document.getElementById('roll').disabled=busy;
+  const rm=document.getElementById('roll-m'); if(rm){ rm.onclick=roll; rm.disabled=busy; }
   document.getElementById('year').textContent=S.year;
   document.getElementById('turn').textContent=S.turns;
   const yi=idx(S),ri=idx(R);
@@ -354,16 +374,16 @@ function reveal(p){ beep(700,.12,'triangle',.04); openCard('princ','',`<div clas
 // ---------- TURN ----------
 function roll(){
   if(busy) return; busy=true; S.turns++; render();
-  const die=document.getElementById('die'); die.classList.add('shake'); sRoll();
+  dieShake(true); sRoll();
   let n=1+Math.floor(Math.random()*6);
   if(S.turns===1) n=2;                       // onboarding: el primer golpe cae temprano (lección del colchón en piel)
   let steps=n;
-  setTimeout(()=>{ die.classList.remove('shake'); die.textContent=n;
+  setTimeout(()=>{ dieShake(false); setDieFace(n);
     const iv=setInterval(()=>{
       S.pos=(S.pos+1)%16;
       if(S.pos===0) newYear();
       if(over){ clearInterval(iv); return; }
-      render(); document.getElementById('die').textContent=n; sRoll();
+      render(); setDieFace(n); sRoll();
       steps--;
       if(steps<=0){ clearInterval(iv); bounceHere(); setTimeout(()=>resolve(S.pos),140); }
     },90);
@@ -371,6 +391,9 @@ function roll(){
 }
 function bounceHere(){ const h=document.querySelector('.sq.here'); if(h){h.classList.add('bounce'); setTimeout(()=>h.classList.remove('bounce'),300);} }
 function flashNear(){ const b=document.getElementById('board'); if(b){b.classList.add('nearmiss'); setTimeout(()=>b.classList.remove('nearmiss'),650);} }
+function dieEls(){ return ['die','die-m'].map(id=>document.getElementById(id)).filter(Boolean); }
+function setDieFace(v){ dieEls().forEach(e=>e.textContent=v); }
+function dieShake(on){ dieEls().forEach(e=>e.classList[on?'add':'remove']('shake')); }
 function finishTurn(){ busy=false; render(); checkEnd(); }
 
 function resolve(i){
